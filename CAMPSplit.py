@@ -26,11 +26,24 @@ def createOutputFile(filename,startRow,endRow):
     #create output sheet
     outputBook = Workbook()
     outputSheet = outputBook.active
-    outputSheet['A1'] = "JWTO"
-    outputBook.save("dm-test.xlsx")
+    #outputSheet['A1'] = "JWTO"
     #copy in header
+    for col in range(1,max_column):
+        #read in data from input sheet
+        value = inputSheet.cell(row=1,column=col).value
+        outputSheet.cell(row=1,column=col).value = value
     #copy in rows
+    outRow = 2
+    for r in range(startRow,endRow+1):
+        for c in range(1,max_column):
+            #read in data from input sheet
+            value = inputSheet.cell(row=r,column=c).value
+            #output the value to the new sheet.
+            outputSheet.cell(row=outRow,column=c).value = value
+        outRow = outRow+1
+
     #save the output file
+    outputBook.save("dm-test.xlsx")
     
 
 #Get the input file Name
@@ -61,6 +74,6 @@ max_column = inputSheet.max_column
 print(getLineSplits())
 
 print("Creating output file")
-createOutputFile("blarg",2,30)
+createOutputFile("blarg",2,25)
 
 
