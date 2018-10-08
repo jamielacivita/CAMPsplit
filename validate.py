@@ -8,7 +8,7 @@
 from openpyxl import Workbook, load_workbook
 import datetime
 import sys
-
+import argparse
 
 def checkColumn(ws, checkColumn, expectedValue):
     """Given a column number and an expected value return true/false indicating if that value is present at column"""
@@ -25,10 +25,10 @@ def runTest(ws, column, value):
     else:
         allValidData = False
         print("Column " + numberToLetter(column) + " is not correct!  Expected " + value)
-    if (allValidData):
-        #print("Checked column headings: ...passed.")
+    #if (allValidData):
+        #print("Checked column headings: ...passed.\n")
         pass
-    
+
 def numberToLetter(colNumber):
     """Given a column number return the excel column heading"""
     ascii = colNumber + 64
@@ -63,6 +63,7 @@ def verifyColumnHeadings(ws,max_rows):
     #Verify Column Headings in Row 1 are correct
     for n in range(1,26):
         runTest(ws, n,colHeadings[n])
+    print("\n")
 
 
 def verifyColumnData(ws, max_rows):
@@ -71,11 +72,14 @@ def verifyColumnData(ws, max_rows):
         checkColumnData(ws, max_rows, colHeadings[c], c)
 
 def main():
-    filename = sys.argv[1]  #Filename is expected to be the first argument on the commandline.
+    #filename = sys.argv[1]  #Filename is expected to be the first argument on the commandline.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename")
+    args = parser.parse_args()
     
     #load workbook
-    print("Validating: " + filename)
-    wb = load_workbook(filename)
+    print("Validating: " + args.filename)
+    wb = load_workbook(args.filename)
 
     #activate sheet
     ws = wb.active
