@@ -17,14 +17,15 @@ def checkColumn(ws, checkColumn, expectedValue):
         returnValue = True
     return returnValue
 
-def runTest(ws, column, value):
+def verifyValue(ws, column, value, verbose):
     cellHasValidHeading = True
     if checkColumn(ws, column,value):
-        #print("Column " + numberToLetter(column) + " is correct.")
+        if (verbose) : print("Column " + numberToLetter(column) + " is correct.")
         pass
     else:
         cellHasValidHeading = False
-        print("Column " + numberToLetter(column) + " is not correct!  Expected " + value)
+        #print("Column " + numberToLetter(column) + " is not correct!  Expected " + value)
+        print("Checked {:50s} {:30s} expected '{}'".format(numberToLetter(column), "\033[91m...FAILED\033[0m",value))
     return cellHasValidHeading
 
 def numberToLetter(colNumber):
@@ -49,50 +50,61 @@ def checkColumnData(ws, max_rows, colName, colNumber):
             pass
         else:
             allValidData = False
-            print("In " + str(colName) +" Row " + str(n) + " is bad \t\t\t<-----------<<< ")
+            #print("In " + str(colName) +" Row " + str(n) + " is bad \t\t\t")
+            print("Checked {:50s} {:30s}".format(colName, "\033[91m...FAILED\033[0m"))
     if (allValidData==True):
-        print("Checked " + str(colName) + "...passed.")
+        print("Checked {:50s} {:30s}".format(colName, "...passed"))
+
 
 def setFilename(fn):
     filename = fn
 
 
-def verifyColumnHeadings(ws):
+def verifyHeadings(ws, verbose):
     print("Validating column header row...")
-    allColumnHeadingsValid = True  #presumed all headings are correct. 
+    headingsAreValid = True  #presumed all headings are correct. 
     #Verify Each column headings is correct
     for n in range(1,26):
-        returnValue = runTest(ws, n,colHeadings[n])
+        if(verifyValue(ws, n,colHeadings[n], verbose)==False): 
+            allColumnHeadingsValid = False
+    if (headingsAreValid):
+        print("Column Header Validation Passed.\n")
+    else:
+        print("Column Header Validation Failed.\n")
+    return headingsAreValid
+
+
+def allColumnHeadingsGood(ws,verbose):
+    allColumnHeadingsValid = True  #presumed all headings are correct. 
+    for n in range(1,26):
+        returnValue = verifyValue(ws, n,colHeadings[n], verbose)
         if (returnValue == False):
             allColumnHeadingsValid = False
-    if (allColumnHeadingsValid):
-        print("Column Validation Padded.\n")
-    else:
-        print("Column Validation Failed.\n")
+    return allColumnHeadingsValid
 
 
-
-def verifyColumnData(ws, max_rows):
+def verifyColumnData(ws, verbose):
     #Iterate over the list of column numbers to check and pass in the name of the colum (dictionary lookup) and the column number.
     for c in colNumToCheck:
-        checkColumnData(ws, max_rows, colHeadings[c], c)
+        checkColumnData(ws, ws.max_row, colHeadings[c], c)
+
 
 def main():
-    #filename = sys.argv[1]  #Filename is expected to be the first argument on the commandline.
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
+    parser.add_argument("--verbose", action='store_true')
     args = parser.parse_args()
-    
+
     #load workbook
-    print("Validating: " + args.filename)
+    print("\nValidating: " + args.filename)
     wb = load_workbook(args.filename)
 
     #activate sheet
     ws = wb.active
     max_rows = ws.max_row
 
-    verifyColumnHeadings(ws)
-    verifyColumnData(ws, max_rows)
+    verifyHeadings(ws, args.verbose)
+    verifyColumnData(ws, args.verbose)
 
 
 #ColHeadings is a dictionary that stores key value pair of column number and heading title.
@@ -148,6 +160,9 @@ valColEntries[25] = ["None", "Basic", "Full"]
 
 #colNumToCheck is a list of column numbers against which the checkColumnData method should be applied. 
 colNumToCheck = [8,9,10,11,12,13,15,18,19,20,21,22,23,24,25]
+
+
+log = True
 
 if __name__ == "__main__":
     main()
