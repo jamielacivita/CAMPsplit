@@ -54,7 +54,7 @@ def checkColumnData(ws, max_rows, colName, colNumber):
             print("Checked {:50s} {:30s}".format(colName, "\033[91m...FAILED\033[0m"))
     if (allValidData==True):
         print("Checked {:50s} {:30s}".format(colName, "...passed"))
-
+    return allValidData
 
 def setFilename(fn):
     filename = fn
@@ -85,9 +85,11 @@ def allColumnHeadingsGood(ws,verbose):
 
 def verifyColumnData(ws, verbose):
     #Iterate over the list of column numbers to check and pass in the name of the colum (dictionary lookup) and the column number.
+    allColumnDataValid = True #presumed all data is correct.
     for c in colNumToCheck:
-        checkColumnData(ws, ws.max_row, colHeadings[c], c)
-
+        if(checkColumnData(ws, ws.max_row, colHeadings[c], c) == False):
+            allColumnDataValid = False
+    return allColumnDataValid
 
 def main():
     parser = argparse.ArgumentParser()

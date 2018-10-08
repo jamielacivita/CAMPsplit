@@ -5,14 +5,15 @@
 
 import argparse
 from openpyxl import Workbook, load_workbook
+import validate
 
-def getLineSplits():
+def getLineSplits(max_row, chunkSize):
     """Return a list of tuples showing where the lines should break."""
     lineSplits = []
 
     start = 2 #presume header row
     while(start <= max_row):
-        end = start + args.chunkSize-1
+        end = start + chunkSize-1
         if (end >= max_row):
             lineSplits.append((start,max_row))
             break
@@ -24,7 +25,7 @@ def getLineSplits():
 def getFileLetter(fileNumber):
     return chr(64+fileNumber)
 
-def createOutputFile(fileNumber,startRow,endRow):
+def createOutputFile(inputSheet, fileNumber,startRow,endRow,max_column,max_row,outputFileName):
     """Creates an output file with a heading row and rows from startRow to endRow from inputFile"""
     #create output sheet
     outputBook = Workbook()
@@ -47,48 +48,54 @@ def createOutputFile(fileNumber,startRow,endRow):
         outRow = outRow+1
 
     #save the output file
-    outputBook.save("dm-"+args.outputFilename+"_"+getFileLetter(fileNumber)+".xlsx")
-    
-
-#Get the input file Name
-#Get the output base
-#Get the chunksize 
-parser = argparse.ArgumentParser()
-parser.add_argument("inputFilename")
-parser.add_argument("outputFilename")
-parser.add_argument("chunkSize", type=int)
-args = parser.parse_args()
-
-showSplits = True
-log = True
-
-#Read in input file
-inputBook = load_workbook(args.inputFilename)
-#print(args.inputFilename)
-
-inputSheet = inputBook.active
-
-#Get max row count
-max_row = inputSheet.max_row
-print(max_row)
-
-#get max column count
-max_column = inputSheet.max_column
-print(max_column)
+    outputBook.save("dm-"+outputFileName+"_"+getFileLetter(fileNumber)+".xlsx")
 
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("inputFilename")
+    parser.add_argument("outputFilename")
+    parser.add_argument("chunkSize", type=int)
+    args = parser.parse_args()
 
+    showSplits = True
+    log = True
+    createFiles = True
+    validateHeadings = True
+    validateColumns = True
 
-print(getLineSplits())
+    #Read in input file
+    inputBook = load_workbook(args.inputFilename)
 
-print("Creating output files")
-#createOutputFile(1,2,25)
-#createOutputFile(2,26,50)
+    inputSheet = inputBook.active
 
-splits = getLineSplits()
-outputFileNumber = 1
-for c in splits:
-    #print(str(c[0]) + " " + str(c[1]))
-    createOutputFile(outputFileNumber,c[0],c[1])
-    outputFileNumber = outputFileNumber + 1
-    
+    #Get max row count
+    max_row = inputSheet.max_row
+
+    #get max column count
+    max_column = inputSheet.max_column
+
+    if(validateHeadings):
+        print("Verifying Column Headings")
+        #print("Result of verifyHeadings: " + str(validate.verifyHeadings(inputSheet, max_row)))
+        goodHeader = validate.verifyHeadings(inputSheet, max_row)
+        if(not goodHeader):
+            print("Header failed validation, files will not be created.")
+
+    if(validateColumns):
+        print("Verifying Column Data")
+        #print("Results of verifyColumnData: " + str(validate.verifyColumnData(inputSheet, max_row)))
+        goodData = validate.verifyColumnData(inputSheet, max_row)
+        if(not goodData):
+            print("Data failed validation, files will not be created.")
+
+    if (createFiles and goodHeader and goodData):
+        print("Creating output files")
+        splits = getLineSplits(max_row,args.chunkSize)
+        outputFileNumber = 1
+        for c in splits:
+            #print(str(c[0]) + " " + str(c[1]))
+            createOutputFile(inputSheet, outputFileNumber,c[0],c[1],max_column,max_row,args.outputFilename)
+            outputFileNumber = outputFileNumber + 1
+
+main()
