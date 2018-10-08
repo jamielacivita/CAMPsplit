@@ -18,16 +18,14 @@ def checkColumn(ws, checkColumn, expectedValue):
     return returnValue
 
 def runTest(ws, column, value):
-    allValidData = True
+    cellHasValidHeading = True
     if checkColumn(ws, column,value):
         #print("Column " + numberToLetter(column) + " is correct.")
         pass
     else:
-        allValidData = False
+        cellHasValidHeading = False
         print("Column " + numberToLetter(column) + " is not correct!  Expected " + value)
-    #if (allValidData):
-        #print("Checked column headings: ...passed.\n")
-        pass
+    return cellHasValidHeading
 
 def numberToLetter(colNumber):
     """Given a column number return the excel column heading"""
@@ -59,11 +57,19 @@ def setFilename(fn):
     filename = fn
 
 
-def verifyColumnHeadings(ws,max_rows):
-    #Verify Column Headings in Row 1 are correct
+def verifyColumnHeadings(ws):
+    print("Validating column header row...")
+    allColumnHeadingsValid = True  #presumed all headings are correct. 
+    #Verify Each column headings is correct
     for n in range(1,26):
-        runTest(ws, n,colHeadings[n])
-    print("\n")
+        returnValue = runTest(ws, n,colHeadings[n])
+        if (returnValue == False):
+            allColumnHeadingsValid = False
+    if (allColumnHeadingsValid):
+        print("Column Validation Padded.\n")
+    else:
+        print("Column Validation Failed.\n")
+
 
 
 def verifyColumnData(ws, max_rows):
@@ -85,7 +91,7 @@ def main():
     ws = wb.active
     max_rows = ws.max_row
 
-    verifyColumnHeadings(ws,max_rows)
+    verifyColumnHeadings(ws)
     verifyColumnData(ws, max_rows)
 
 
