@@ -48,7 +48,7 @@ def createOutputFile(inputSheet, fileNumber,startRow,endRow,max_column,max_row,o
         outRow = outRow+1
 
     #save the output file
-    outputBook.save("dm-"+outputFileName+"_"+getFileLetter(fileNumber)+".xlsx")
+    outputBook.save(outputFileName+"_"+getFileLetter(fileNumber)+".xlsx")
 
 
 def main():
